@@ -1,0 +1,288 @@
+python 对象文件操作
+操作的三个步骤
+1.打开文件
+2.读写文件
+3.关闭文件
+
+
+文件模式	操作
+r	以读的方式打开(文件不存在则报错)
+w	以写方式打开(文件丰在则清空,不存在则创建)
+a	以追加模式打开(必要时创建新文件)
+r+	以读写模式打开
+w+	以读写模式打开
+a+	以读写模式打开
+b	以二进制模式打开
+
+f = open('/tmp/passwd')	#默认以r的方式打开文件不存在则报错
+data = f.read()	#默认把文件所有内容读取进来
+f.close()  	#关闭文件
+
+>>> f = open('/tmp/passwd')
+>>> f.read(4) 可以指定读4个字节
+>>> f.readline() 这样是读一行
+>>> f.readlines() 读取全部行,用列表存储,每一行是一个列表项
+
+文本文件常用处理方式,重要
+>>> f = open('/etc/passwd')
+>>> for line in f:
+...     print(line,end='')
+>>> f.close()
+
+读取非文本文件
+f = open('/bin/ls','rb')  #b表示bytes类型显示
+f.read(10)  #读10字节,如果读取的内容,一个字节刚好可以显示成一个字符,就显示字符,否则将显示该字节的16进制数,\x 表示16进制
+b'\x7fELF\x02\x01\x01\x00\x00\x00'    #b表示byte
+f.read(4096)	#建议每次读取4096的倍数
+
+写入文件
+>>> f = open('/tmp/passwd','w')   #清空或创建文件
+>>> f.write('hello world! \n')	#系统将数据写入缓存,数据量较大时,或关闭文件时,内容才会存入硬盘
+14	#代表写入了13字节
+f.flush()  可以将缓存的数据立即写入磁盘
+
+>>> f.writelines(['2nd line.\n','3rd line.\n'])	#写入字符串列表中数据
+>>> f.close()
+
+------------------------------------------------------
+with 语句 只有打开读取,不用关闭,这样就比上一种少一步
+>>> with open('/tmp/passwd') as f:	#
+...     f.readline()	
+... 
+'hello world! \n'
+>>> f.readline()	#文件已经关闭,无法读取
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: I/O operation on closed file.
+>>> 
+
+----------------------------------------------------
+seek移动文件指针 文件开头是0 指针所在位置1  结尾2
+
+>>> f = open('/tmp/passwd','rb')
+>>> f.seek(6,0)	#从开头向后偏移6字节
+6
+>>> f.seek(2,1)	#从当前位置向后移2字节
+8
+>>> f.read(3)
+b'rld'
+
+-----------------------------------------------------
+实例如下,将/bin/ls 复制一份到 /tmp/下并改名为list
+
+f1 = open('/bin/ls','rb')
+f2 = open('/tmp/list','wb')
+
+data = f1.read()
+f2.write(data)
+
+f1.close()
+f2.close()
+
+#问题1.建议用变量代替字面量
+#问题2.文件对象f1/f2没有含义
+#问题3.读取文件全部内容,文件小还可以,但是如果太大,就不能这样操作.
+
+
+改进方案  以下的方法经常用到
+src_fname = '/bin/ls'
+dst_fname = '/tmp/list2'
+
+src_fobj = open(src_fname,'rb')
+dst_fobj = open(dst_fname,'wb')
+
+while True:
+    data = src_fobj.read(4096)
+    if data == b'':
+    #if len(data) == 0:
+    #if not data:
+        break
+    dst_fobj.write(data)
+src_fobj.close()
+dst_fobj.close()
+--------------------------------------------
+
+def 函数名(参数.....):
+	函数体内的代码
+函数定义时,里面的代码不会执行
+函数调用,务必通过()调用
+调用时,将会执行函数内的代码
+
+>>> def pstar():
+...     print('*' * 50)
+... 
+>>> pstar
+<function pstar at 0x7f76ad564488>   #交互解释器将显示函数在内存中的位置
+>>> pstar()	#调用函数
+*******************************************
+>>> 
+
+函数的返回值就是函数运行的结果,通过return 返回,如果没有return 则返回None.
+
+>>> def add():
+...     a=10+5
+... 
+>>> x = add()
+>>> print(x)
+None
+>>> 
+
+>>> def add():
+...     a = 10 + 5 
+...     return 'hello world'
+... 
+>>> x = add()
+>>> print(x)
+hello world
+>>> 
+
+函数里不能有print 最好用return代替.
+
+------------------------------
+
+函数参数
+
+定义函数时,函数名字后面括号中填写的是参数
+函数处理的数据,应该通过参数传递
+
+位置参数
+在python,命令行上的位置参数保存到了sys模块的argv列表中
+
+
+默认参数
+给定的默认值的参数,就是默认参数
+
+>>> def test(n=30):
+...     print('%' * n)
+... 
+>>> test
+<function test at 0x7f4a928796a8>
+>>> test()
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+>>> test(2)
+%%
+>>> 
+
+--------------------------------
+模块
+一个以.py结尾的python 程序文件就是一个模块
+把文件的py移除,剩余的文件名部分就是模块名
+文件是代码的物理组织形式
+模块是代码的逻辑组织形式
+
+导入模块的方法
+1.常用的每行导入一个模块,常用
+>>> import random
+>>> import getpass
+>>> 
+2.仅导入模块中的某些功能,常用
+>>> from random import choice, randint
+>>> randint(1,10)
+6
+>>> choice('agcd')
+'d'
+>>> 
+3.一行导入多个模块,可读性不好,不推荐
+>>> import sys,os,abc
+>>> 
+4.导入模块时,为其起别名, 不常用
+>>> import getpass as gp
+>>> a = gp.getpass()
+Password: 
+>>> 
+
+模块的加载
+import 是导入模块
+导入模块时,将会导致模块文件的代码执行,称作加载load
+不管导入模块多少遍,仅load一次
+先创建一个名为star的py文件写入以下内容
+hi = 'Hello World!'
+def star(n=10):
+    '用于打印一行星'
+    print('*' * n)
+star()
+接下来在解释器中就可以调用这个模块
+>>> import star
+**********
+>>> star.star(20)
+********************
+>>> star.star()
+**********
+>>> star.hi
+'Hello World!'
+>>> 
+
+可以用help(start) 查看模块的描述
+
+模块特性_name_
+每个模块都有一个特殊的变量叫_name_
+_name_值在不同的情况下不同
+如果模块文件直接运行,值为_main_
+如果模块因为import间接运行,值为模块名
+[student@tedu day03]$ cat aaa.py 
+print(__name__)
+[student@tedu day03]$ cat bbb.py 
+import aaa
+[student@tedu day03]$ 
+[student@tedu day03]$ python3 aaa.py
+__main__
+[student@tedu day03]$ cat bbb.py 
+import aaa
+[student@tedu day03]$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
