@@ -1,0 +1,5 @@
+[5]
+[5+1]
+[5+1 for i in range(5)]
+[5+i for i in range(1,11)]
+[5+i for i in range(1,11) if i% 2 == 1]
